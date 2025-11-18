@@ -39,6 +39,9 @@ class Settings:
     chunk_overlap: int = field(
         default_factory=lambda: int(os.getenv("CHUNK_OVERLAP", 50))
     )
+    knowledge_base_dir: str = field(
+        default_factory=lambda: os.getenv("KNOWLEDGE_BASE_DIR", "data/knowledge_base")
+    )
 
     def offline_mode(self) -> bool:
         return self.llm_mode != "gemini" or not self.gemini_api_key

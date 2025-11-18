@@ -3,43 +3,48 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request
 
-from agritech_core import AgritechOrchestrator, Settings, get_settings
+from agritech_core import AgritechOrchestrator, get_settings
 from agritech_core.rag import Document, KnowledgeBase
 from agritech_core.schemas import ChatRequest, ChatResponse, IngestRequest, IngestResponse
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Agritech AI Assistant", version="0.1.0")
 settings = get_settings()
-orchestrator = AgritechOrchestrator(settings=settings)
-_startup_ingested = False
 
 
-def get_orchestrator() -> AgritechOrchestrator:
-    return orchestrator
-
-
-@app.on_event("startup")
-def preload_documents() -> None:
-    global _startup_ingested
-    if _startup_ingested:
-        return
-    knowledge_dir = Path("data/knowledge_base")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    orchestrator = AgritechOrchestrator(settings=settings)
+    knowledge_dir = Path(settings.knowledge_base_dir)
     if not knowledge_dir.exists():
-        logger.warning("Knowledge base directory %s not found", knowledge_dir)
-        return
+        raise RuntimeError(f"Knowledge base directory not found: {knowledge_dir}")
     docs = KnowledgeBase.load_markdown_dir(knowledge_dir)
     if not docs:
-        logger.warning("No markdown documents discovered for initial ingestion")
-        return
+        raise RuntimeError(f"No markdown documents found in {knowledge_dir}")
     chunks = orchestrator.ingest(docs)
     logger.info("Ingested %s knowledge chunks during startup", chunks)
-    _startup_ingested = True
+    app.state.orchestrator = orchestrator
+    try:
+        yield
+    finally:
+        if hasattr(app.state, "orchestrator"):
+            delattr(app.state, "orchestrator")
+
+
+app = FastAPI(title="Agritech AI Assistant", version="0.1.0", lifespan=lifespan)
+
+
+def get_orchestrator(request: Request) -> AgritechOrchestrator:
+    orchestrator = getattr(request.app.state, "orchestrator", None)
+    if orchestrator is None:
+        raise HTTPException(status_code=503, detail="Orchestrator not ready")
+    return orchestrator
 
 
 @app.get("/health")

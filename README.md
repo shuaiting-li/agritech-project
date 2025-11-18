@@ -202,8 +202,9 @@ To demonstrate the LLM and RAG portion of the system, this repository now includ
 3. Export Gemini credentials (real usage) or force offline mode for development:
    - `export GEMINI_API_KEY=your_key`
    - Optional overrides: `LLM_MODE=gemini|offline`, `GEMINI_MODEL` (defaults to `models/gemini-2.5-flash`), `GEMINI_EMBEDDING_MODEL`, `RAG_TOP_K`.
-4. Start the API: `uvicorn app.main:app --reload`.
-5. Visit `http://127.0.0.1:8000/docs` for interactive testing.
+4. Make sure the knowledge base directory contains at least one markdown file (defaults to `data/knowledge_base`, override with `KNOWLEDGE_BASE_DIR`). The API will refuse to start if the directory is missing or empty.
+5. Start the API: `uvicorn app.main:app --reload`.
+6. Visit `http://127.0.0.1:8000/docs` for interactive testing.
 
 ### Environment Variables
 
@@ -215,10 +216,11 @@ To demonstrate the LLM and RAG portion of the system, this repository now includ
 | `LLM_MODE`                     | Switch between live Gemini and offline stub. | `gemini`                                        |
 | `RAG_TOP_K`                    | Number of chunks returned per query.         | `4`                                             |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | Chunker configuration during ingestion.      | `500` / `50`                                    |
+| `KNOWLEDGE_BASE_DIR`           | Directory of markdown files to ingest.       | `data/knowledge_base`                           |
 
 ### API Overview
 - `POST /ingest` — Add documents to the knowledge base. Accepts JSON payload with `documents` list, each containing `doc_id`, `text`, and optional metadata. Returns the number of chunks created.
-- `POST /chat` — Send a user message plus optional `location`, `farm_type`, and `goals`. Returns the assistant reply, planner tasks, and citations derived from retrieved chunks.
+- `POST /chat` — Send a user message (up to 4,000 characters) plus optional `location`, `farm_type`, and `goals`. Returns the assistant reply, planner tasks, and citations derived from retrieved chunks.
 - `GET /health` — Basic readiness probe.
 
 ### Tests
