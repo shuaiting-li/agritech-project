@@ -201,7 +201,7 @@ To demonstrate the LLM and RAG portion of the system, this repository now includ
 2. Install dependencies: `pip install -e .[dev]`.
 3. Export Gemini credentials (real usage) or force offline mode for development:
    - `export GEMINI_API_KEY=your_key`
-   - Optional overrides: `LLM_MODE=gemini|offline`, `GEMINI_MODEL` (defaults to `models/gemini-1.5-flash`), `GEMINI_EMBEDDING_MODEL`, `RAG_TOP_K`.
+   - Optional overrides: `LLM_MODE=gemini|offline`, `GEMINI_MODEL` (defaults to `models/gemini-2.5-flash`), `GEMINI_EMBEDDING_MODEL`, `RAG_TOP_K`.
 4. Start the API: `uvicorn app.main:app --reload`.
 5. Visit `http://127.0.0.1:8000/docs` for interactive testing.
 
