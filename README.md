@@ -181,4 +181,35 @@ List all references cited in this document using a consistent style (e.g., Harva
 - **Appendix A:** Initial sketches, diagrams, or mock-ups.
 - **Appendix B:** Additional data or background information.
 
+---
+
+## Backend Implementation (LLM + RAG MVP)
+
+To demonstrate the LLM and RAG portion of the system, this repository now includes a FastAPI backend that exposes ingestion and chat endpoints backed by Gemini (with an offline-friendly fallback for development).
+
+### Stack and Capabilities
+- FastAPI application in `app/main.py` with `/ingest` and `/chat` routes plus `/health`.
+- Modular core (`agritech_core/`) containing:
+  - `KnowledgeBase` with simple vector store, chunker, and Gemini/hashed embeddings.
+  - Domain agents for planning, RAG, and chat orchestration with rolling memory buffer.
+  - Gemini text client wrapper (falls back to a deterministic offline stub when `GEMINI_API_KEY` is missing or when `LLM_MODE=offline`).
+- Sample agronomy knowledge stored under `data/knowledge_base/` (markdown files automatically ingested on startup).
+- Pydantic schemas shared between API and orchestrator for predictable contracts.
+
+### Running Locally
+1. Create a virtual environment (`python -m venv .venv && source .venv/bin/activate`).
+2. Install dependencies: `pip install -e .[dev]`.
+3. Export Gemini credentials (real usage) or force offline mode for development:
+   - `export GEMINI_API_KEY=your_key`
+   - Optional overrides: `LLM_MODE=gemini|offline`, `GEMINI_MODEL`, `GEMINI_EMBEDDING_MODEL`, `RAG_TOP_K`.
+4. Start the API: `uvicorn app.main:app --reload`.
+5. Visit `http://127.0.0.1:8000/docs` for interactive testing.
+
+### API Overview
+- `POST /ingest` — Add documents to the knowledge base. Accepts JSON payload with `documents` list, each containing `doc_id`, `text`, and optional metadata. Returns the number of chunks created.
+- `POST /chat` — Send a user message plus optional `location`, `farm_type`, and `goals`. Returns the assistant reply, planner tasks, and citations derived from retrieved chunks.
+- `GET /health` — Basic readiness probe.
+
+### Tests
+Run `pytest` to exercise the offline chat flow (`tests/test_orchestrator.py`). Tests default to the offline LLM/embedding mode so no network access or API keys are required.
 
