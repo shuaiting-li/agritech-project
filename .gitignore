@@ -1,5 +1,48 @@
+# Virtual Environment
 .venv/
+venv/
+env/
+ENV/
+
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
 *.egg-info/
+dist/
+build/
+*.egg
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
 API_KEY
+*.key
+secrets.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
