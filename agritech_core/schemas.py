@@ -32,7 +32,6 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4000)
     location: str | None = None
     farm_type: str | None = None
-    goals: list[str] | None = None
     force_refresh: bool = False
 
 
