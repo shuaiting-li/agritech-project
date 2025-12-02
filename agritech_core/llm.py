@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class BaseLLMClient:
-    def generate(self, prompt: str, temperature: float = 0.2) -> str:  # pragma: no cover - interface
+    def generate(
+        self, prompt: str, temperature: float = 0.2
+    ) -> str:  # pragma: no cover - interface
         raise NotImplementedError
 
 
@@ -19,6 +21,16 @@ class OfflineLLMClient(BaseLLMClient):
     """Deterministic placeholder used for local development."""
 
     def generate(self, prompt: str, temperature: float = 0.2) -> str:
+        if "JSON" in prompt or "json" in prompt:
+            return """
+             [
+                 {
+                     "title": "Offline Task",
+                     "detail": "This is a simulated task from offline mode.",
+                     "priority": "medium"
+                 }
+             ]
+             """
         guidance = "\n".join(line for line in prompt.splitlines()[-8:])
         return (
             "[offline stub] Based on the available agritech notes I suggest: "
@@ -55,7 +67,9 @@ class LLMFactory:
 
     def create(self) -> BaseLLMClient:
         if self.settings.offline_mode():
-            logger.warning("Using OfflineLLMClient because Gemini credentials are missing or disabled")
+            logger.warning(
+                "Using OfflineLLMClient because Gemini credentials are missing or disabled"
+            )
             return OfflineLLMClient()
         return GeminiTextClient(
             api_key=self.settings.gemini_api_key or "",
