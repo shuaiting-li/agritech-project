@@ -86,8 +86,8 @@ Add the following configuration:
 GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional: Model Configuration
-GEMINI_MODEL=models/gemini-2.5-flash
-GEMINI_EMBEDDING_MODEL=models/text-embedding-004
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_EMBEDDING_MODEL=text-embedding-004
 
 # Optional: RAG Configuration
 RAG_TOP_K=4
@@ -107,7 +107,8 @@ For temporary session (will be lost after closing terminal):
 
 ```bash
 export GEMINI_API_KEY="your_gemini_api_key_here"
-export GEMINI_MODEL="models/gemini-2.0-flash-exp"
+export GEMINI_MODEL="gemini-2.5-flash"
+export GEMINI_EMBEDDING_MODEL="text-embedding-004"
 ```
 
 ### Getting Gemini API Key
