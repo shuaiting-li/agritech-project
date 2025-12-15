@@ -226,7 +226,7 @@ max_tokens = 1000
 
 # Constants: UPPER_SNAKE_CASE
 MAX_RETRIES = 3
-DEFAULT_MODEL = "gemini-2.0-flash-exp"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 # Private attributes: leading underscore
 class MyClass:
