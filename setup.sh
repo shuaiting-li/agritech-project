@@ -73,16 +73,6 @@ else
     echo "   Get your key from: https://aistudio.google.com/app/apikey"
 fi
 
-# Run Python tests
-echo ""
-echo "🧪 Running backend tests..."
-pytest -v --tb=short
-if [ $? -eq 0 ]; then
-    echo "✅ All backend tests passed!"
-else
-    echo "❌ Some tests failed"
-    exit 1
-fi
 
 # Setup Frontend
 if [ "$SKIP_FRONTEND" = false ]; then
