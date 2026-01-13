@@ -1,4 +1,4 @@
-"""Retriever configuration for RAG."""
+"""Vector store and retriever configuration for RAG."""
 
 from functools import lru_cache
 
@@ -7,6 +7,26 @@ from langchain_core.retrievers import BaseRetriever
 
 from cresco.config import Settings, get_settings
 from .embeddings import get_embeddings
+
+
+@lru_cache
+def get_vector_store(settings: Settings = None) -> Chroma:
+    """Get the Chroma vector store instance.
+
+    Args:
+        settings: Application settings. Uses default if not provided.
+
+    Returns:
+        Configured Chroma vector store instance.
+    """
+    if settings is None:
+        settings = get_settings()
+
+    return Chroma(
+        persist_directory=str(settings.chroma_path),
+        embedding_function=get_embeddings(settings),
+        collection_name="cresco_knowledge_base",
+    )
 
 
 @lru_cache
@@ -19,14 +39,7 @@ def get_retriever(settings: Settings = None) -> BaseRetriever:
     Returns:
         Configured retriever instance.
     """
-    if settings is None:
-        settings = get_settings()
-
-    vectorstore = Chroma(
-        persist_directory=str(settings.chroma_path),
-        embedding_function=get_embeddings(settings),
-        collection_name="cresco_knowledge_base",
-    )
+    vectorstore = get_vector_store(settings)
 
     # Configure retriever with search parameters
     retriever = vectorstore.as_retriever(

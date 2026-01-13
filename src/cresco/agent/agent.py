@@ -1,80 +1,114 @@
-"""LangChain agent for Cresco chatbot."""
+"""LangChain agent for Cresco chatbot - Modern 2026 style."""
 
 from functools import lru_cache
 
-from langchain_openai import ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferWindowMemory
-from langchain_core.prompts import (
-    SystemMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_agent
+from langchain.chat_models import init_chat_model
+from langchain.tools import tool
+from langgraph.checkpoint.memory import InMemorySaver
+from langchain_core.runnables import RunnableConfig
 
 from cresco.config import Settings, get_settings
-from cresco.rag.retriever import get_retriever
-from .prompts import SYSTEM_PROMPT, QA_PROMPT
+from cresco.rag.retriever import get_vector_store
+from .prompts import SYSTEM_PROMPT
 
 
 class CrescoAgent:
-    """Conversational agent for agricultural queries."""
+    """Conversational agent for agricultural queries using modern LangChain patterns."""
 
     def __init__(self, settings: Settings):
         """Initialize the Cresco agent."""
         self.settings = settings
-        self.llm = ChatOpenAI(
-            model=settings.openai_model,
-            api_key=settings.openai_api_key,
+        self.vector_store = get_vector_store(settings)
+        self.checkpointer = InMemorySaver()
+        self._agent = self._build_agent()
+
+    def _build_agent(self):
+        """Build the agent using create_agent with retrieval tool."""
+        # Initialize the chat model
+        model = init_chat_model(
+            self.settings.openai_model,
+            model_provider="openai",
+            api_key=self.settings.openai_api_key,
             temperature=0.3,
         )
-        self.retriever = get_retriever(settings)
-        self.memory = ConversationBufferWindowMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            output_key="answer",
-            k=5,  # Keep last 5 exchanges
+
+        # Create retrieval tool with access to vector store
+        vector_store = self.vector_store
+
+        @tool(response_format="content_and_artifact")
+        def retrieve_agricultural_info(query: str):
+            """Search the agricultural knowledge base for relevant information.
+
+            Use this tool to find information about:
+            - Crop diseases and pest management
+            - Nutrient management and fertilizer recommendations
+            - Wheat, barley, oats, and maize cultivation
+            - Seed selection and certification standards
+            - UK agricultural regulations and best practices
+            """
+            retrieved_docs = vector_store.similarity_search(query, k=5)
+            serialized = "\n\n".join(
+                f"Source: {doc.metadata.get('filename', 'Unknown')}\n"
+                f"Category: {doc.metadata.get('category', 'general')}\n"
+                f"Content: {doc.page_content}"
+                for doc in retrieved_docs
+            )
+            return serialized, retrieved_docs
+
+        # Create agent with retrieval tool and checkpointer for memory
+        agent = create_agent(
+            model=model,
+            tools=[retrieve_agricultural_info],
+            system_prompt=SYSTEM_PROMPT,
+            checkpointer=self.checkpointer,
         )
-        self._chain = self._build_chain()
 
-    def _build_chain(self) -> ConversationalRetrievalChain:
-        """Build the conversational retrieval chain."""
-        # Create prompt with system context
-        messages = [
-            SystemMessagePromptTemplate.from_template(SYSTEM_PROMPT),
-            HumanMessagePromptTemplate.from_template(QA_PROMPT),
-        ]
-        qa_prompt = ChatPromptTemplate.from_messages(messages)
+        return agent
 
-        chain = ConversationalRetrievalChain.from_llm(
-            llm=self.llm,
-            retriever=self.retriever,
-            memory=self.memory,
-            return_source_documents=True,
-            combine_docs_chain_kwargs={"prompt": qa_prompt},
-            verbose=self.settings.debug,
+    async def chat(self, message: str, thread_id: str = "default") -> dict:
+        """Process a chat message and return response with sources.
+
+        Args:
+            message: User's question
+            thread_id: Conversation thread ID for memory persistence
+
+        Returns:
+            Dict with 'answer' and 'sources' keys
+        """
+        config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
+
+        result = await self._agent.ainvoke(
+            {"messages": [{"role": "user", "content": message}]},
+            config,
         )
-        return chain
 
-    async def chat(self, message: str) -> dict:
-        """Process a chat message and return response with sources."""
-        result = await self._chain.ainvoke({"question": message})
+        # Extract the final AI message
+        ai_message = result["messages"][-1]
+        answer = (
+            ai_message.content if hasattr(ai_message, "content") else str(ai_message)
+        )
 
-        # Extract source document names
+        # Extract sources from tool artifacts if available
         sources = []
-        if "source_documents" in result:
-            for doc in result["source_documents"]:
-                source = doc.metadata.get("source", "Unknown")
-                if source not in sources:
-                    sources.append(source)
+        for msg in result["messages"]:
+            if hasattr(msg, "artifact") and msg.artifact:
+                for doc in msg.artifact:
+                    source = doc.metadata.get("filename", "Unknown")
+                    if source not in sources:
+                        sources.append(source)
 
         return {
-            "answer": result["answer"],
+            "answer": answer,
             "sources": sources,
         }
 
-    def clear_memory(self) -> None:
-        """Clear conversation memory."""
-        self.memory.clear()
+    def clear_memory(self, thread_id: str = "default") -> None:
+        """Clear conversation memory for a specific thread."""
+        # InMemorySaver doesn't have a direct clear method per thread
+        # Reinitialize checkpointer to clear all memory
+        self.checkpointer = InMemorySaver()
+        self._agent = self._build_agent()
 
 
 @lru_cache
