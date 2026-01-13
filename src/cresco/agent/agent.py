@@ -83,9 +83,19 @@ class CrescoAgent:
 
         # Extract the final AI message
         ai_message = result["messages"][-1]
-        answer = (
+
+        # Handle different content formats (string or list of content blocks)
+        content = (
             ai_message.content if hasattr(ai_message, "content") else str(ai_message)
         )
+        if isinstance(content, list):
+            # Extract text from content blocks like [{'type': 'text', 'text': '...'}]
+            answer = "".join(
+                block.get("text", "") if isinstance(block, dict) else str(block)
+                for block in content
+            )
+        else:
+            answer = str(content)
 
         # Extract sources from tool artifacts if available
         sources = []
