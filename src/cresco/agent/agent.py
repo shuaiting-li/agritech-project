@@ -27,6 +27,7 @@ class CrescoAgent:
         if self.settings.model_provider == "azure-openai":
             # Azure OpenAI requires specific configuration
             from langchain_openai import AzureChatOpenAI
+
             model = AzureChatOpenAI(
                 azure_deployment=self.settings.azure_openai_deployment,
                 azure_endpoint=self.settings.azure_openai_endpoint,
