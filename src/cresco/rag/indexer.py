@@ -10,7 +10,7 @@ from .document_loader import load_knowledge_base, split_documents
 from .embeddings import get_embeddings
 
 # Batch settings for rate limit handling
-BATCH_SIZE = 10  # Number of documents per batch
+BATCH_SIZE = 100  # Number of documents per batch
 BATCH_DELAY = 1.0  # Seconds to wait between batches
 
 
