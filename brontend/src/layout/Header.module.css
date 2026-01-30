@@ -1,0 +1,98 @@
+.header {
+    height: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-app);
+}
+
+.left { display: flex; align-items: center; gap: 12px; }
+
+.logoBox {
+    color: #0f1110;
+    background: var(--accent);
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 15px rgba(110, 231, 183, 0.4);
+}
+
+.title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+
+/* --- Profile Button --- */
+.right { position: relative; }
+
+.profileBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    padding-left: 4px;
+    border-radius: 30px; /* The Pill shape */
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profileBtn:hover {
+    background: var(--bg-panel);
+    border-color: var(--border);
+}
+
+.avatar {
+    width: 32px; height: 32px;
+    background: #252827;
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid var(--border-light);
+}
+
+.chevron {
+    color: var(--text-muted);
+    transition: color 0.2s;
+}
+
+.profileBtn:hover .chevron {
+    color: var(--text-main);
+}
+
+/* --- Dropdown Settings --- */
+.initialsDropdown {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    width: 120px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dropdownLabel {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.initialsDropdown input {
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px;
+    color: var(--accent);
+    font-weight: 700;
+    outline: none;
+    text-align: center;
+}
