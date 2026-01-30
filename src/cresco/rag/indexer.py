@@ -75,8 +75,8 @@ async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
     documents = load_knowledge_base(settings)
     chunks = split_documents(documents)
 
-    print(f"📄 Loaded {len(documents)} documents, split into {len(chunks)} chunks")
-    print(f"🔄 Indexing in batches of {BATCH_SIZE} with {BATCH_DELAY}s delay...")
+    print(f"[*] Loaded {len(documents)} documents, split into {len(chunks)} chunks")
+    print(f"[*] Indexing in batches of {BATCH_SIZE} with {BATCH_DELAY}s delay...")
 
     # Initialize empty vector store
     embeddings = get_embeddings()
@@ -94,7 +94,7 @@ async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
         total_batches = (len(chunks) + BATCH_SIZE - 1) // BATCH_SIZE
 
         print(
-            f"  📦 Batch {batch_num}/{total_batches}: {len(batch)} chunks...",
+            f"  [>] Batch {batch_num}/{total_batches}: {len(batch)} chunks...",
             end=" ",
             flush=True,
         )
@@ -103,25 +103,25 @@ async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
             # Add batch to vector store
             vectorstore.add_documents(batch)
             total_indexed += len(batch)
-            print("✅")
+            print("[OK]")
 
             # Delay between batches (except for the last one)
             if i + BATCH_SIZE < len(chunks):
                 await asyncio.sleep(BATCH_DELAY)
 
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"[ERROR] {e}")
             # On rate limit, wait longer and retry
             if "rate" in str(e).lower() or "429" in str(e):
-                print(f"  ⏳ Rate limited, waiting 30s...")
+                print(f"  [!] Rate limited, waiting 30s...")
                 await asyncio.sleep(30)
                 try:
                     vectorstore.add_documents(batch)
                     total_indexed += len(batch)
-                    print(f"  ✅ Retry successful")
+                    print(f"  [OK] Retry successful")
                 except Exception as retry_error:
-                    print(f"  ❌ Retry failed: {retry_error}")
+                    print(f"  [ERROR] Retry failed: {retry_error}")
                     raise
 
-    print(f"🎉 Indexed {total_indexed} chunks successfully")
+    print(f"[*] Indexed {total_indexed} chunks successfully")
     return total_indexed

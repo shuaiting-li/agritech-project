@@ -35,10 +35,22 @@ async def chat(
 ) -> ChatResponse:
     """Send a message to the Cresco chatbot."""
     try:
-        result = await agent.chat(request.message)
+        # Build the message, including file context if files are uploaded
+        message = request.message
+
+        if request.files and len(request.files) > 0:
+            file_context = "\n\n[Uploaded Files Context]:\n"
+            for file in request.files:
+                file_name = file.get("name", "unknown")
+                file_content = file.get("content", "")
+                file_context += f"\n--- {file_name} ---\n{file_content}\n"
+            message = message + file_context
+
+        result = await agent.chat(message)
         return ChatResponse(
             answer=result["answer"],
             sources=result.get("sources", []),
+            tasks=result.get("tasks", []),
             conversation_id=request.conversation_id,
         )
     except Exception as e:

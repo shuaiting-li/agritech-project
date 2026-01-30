@@ -83,7 +83,7 @@ class CrescoAgent:
             thread_id: Conversation thread ID for memory persistence
 
         Returns:
-            Dict with 'answer' and 'sources' keys
+            Dict with 'answer', 'sources', and 'tasks' keys
         """
         config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
@@ -108,6 +108,21 @@ class CrescoAgent:
         else:
             answer = str(content)
 
+        # Parse tasks from the response if present
+        tasks = []
+        if "---TASKS---" in answer and "---END_TASKS---" in answer:
+            try:
+                import json
+                task_start = answer.index("---TASKS---") + len("---TASKS---")
+                task_end = answer.index("---END_TASKS---")
+                task_json = answer[task_start:task_end].strip()
+                tasks = json.loads(task_json)
+                # Remove the task section from the answer
+                answer = answer[:answer.index("---TASKS---")].strip()
+            except (ValueError, json.JSONDecodeError) as e:
+                # If parsing fails, just leave tasks empty
+                pass
+
         # Extract sources from tool artifacts if available
         sources = []
         for msg in result["messages"]:
@@ -120,6 +135,7 @@ class CrescoAgent:
         return {
             "answer": answer,
             "sources": sources,
+            "tasks": tasks,
         }
 
     def clear_memory(self, thread_id: str = "default") -> None:

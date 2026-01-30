@@ -12,6 +12,9 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = Field(
         None, description="Optional conversation ID for context"
     )
+    files: list[dict] | None = Field(
+        None, description="Optional uploaded files with name and content"
+    )
 
 
 class ChatResponse(BaseModel):
@@ -20,6 +23,9 @@ class ChatResponse(BaseModel):
     answer: str = Field(..., description="AI-generated response")
     sources: list[str] = Field(
         default_factory=list, description="Source documents used"
+    )
+    tasks: list[dict] = Field(
+        default_factory=list, description="Suggested action plan tasks"
     )
     conversation_id: str | None = Field(
         None, description="Conversation ID for follow-up"

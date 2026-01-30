@@ -1,0 +1,29 @@
+.sidebar {
+    width: 280px; padding: 24px;
+    border-left: 1px solid var(--border);
+    background: var(--bg-app);
+}
+.sidebar h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 20px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.card {
+    background: var(--bg-panel);
+    border: 1px solid transparent;
+    padding: 14px;
+    border-radius: 10px;
+    height: 90px;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;
+    cursor: pointer; transition: 0.2s ease;
+    color: var(--text-main);
+}
+
+.card:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-dim);
+    transform: translateY(-1px);
+}
+
+.iconBox { color: var(--text-muted); transition: 0.2s; }
+.card:hover .iconBox { color: var(--accent); }
+.card span { font-size: 0.8rem; font-weight: 500; }

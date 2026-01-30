@@ -19,12 +19,12 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     settings = get_settings()
-    print(f"🌱 Starting Cresco v{__version__}")
-    print(f"📚 Knowledge base: {settings.knowledge_base}")
-    print(f"🧠 Using model: {settings.model_provider}/{settings.model_name}")
+    print(f"[*] Starting Cresco v{__version__}")
+    print(f"[*] Knowledge base: {settings.knowledge_base}")
+    print(f"[*] Using model: {settings.model_provider}/{settings.model_name}")
     yield
     # Shutdown
-    print("👋 Shutting down Cresco")
+    print("[*] Shutting down Cresco")
 
 
 def create_app() -> FastAPI:
