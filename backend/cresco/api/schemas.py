@@ -56,3 +56,9 @@ class IndexResponse(BaseModel):
     status: str = Field(..., description="Indexing status")
     documents_indexed: int = Field(..., description="Number of documents indexed")
     message: str = Field(..., description="Status message")
+
+
+class FileUploadResponse(BaseModel):
+    """Response model for file upload endpoint."""
+    filename: str = Field(..., description="Name of the uploaded file")
+    status: str = Field(..., description="Upload status")

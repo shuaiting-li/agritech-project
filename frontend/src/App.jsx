@@ -3,7 +3,7 @@ import Header from './layout/Header';
 import SidebarLeft from './layout/SidebarLeft';
 import SidebarRight from './layout/SidebarRight';
 import ChatArea from './layout/ChatArea';
-import { sendMessage } from './services/api';
+import { sendMessage, uploadAndIndexFile } from './services/api';
 
 const layoutStyle = {
     display: 'flex',
@@ -18,10 +18,17 @@ function App() {
     const [isLoading, setIsLoading] = useState(false);
     const [conversationId, setConversationId] = useState(null);
 
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const uploadedFiles = Array.from(e.target.files);
-
-        setFiles(prev => [...prev, ...uploadedFiles]);
+        console.log("Uploading files:");
+        for (const file of uploadedFiles) {
+            try {
+                await uploadAndIndexFile(file);
+                setFiles(prev => [...prev, file]);
+            } catch (error) {
+                console.error("Failed to upload and index:", file.name);
+            }
+        };
     };
 
     const handleRemoveFile = (index) => {
