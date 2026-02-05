@@ -44,4 +44,4 @@ nohup.out
 *.db
 *.sqlite
 *.sqlite3
-data/chroma_db/
+backend/data/chroma_db/
