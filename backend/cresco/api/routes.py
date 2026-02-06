@@ -58,7 +58,6 @@ async def chat(
             conversation_id=request.conversation_id,
         )
     except Exception as e:
-        print(f"Error during chat processing: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
 
 @router.post("/upload", response_model=FileUploadResponse, tags=["Files"])
@@ -72,14 +71,10 @@ async def upload_file(file: UploadFile = File(...),settings: Settings = Depends(
             shutil.copyfileobj(file.file, buffer)
         
         # Trigger reindexing
-        print(f"uploaded file: {file.filename}")
-
         await index_knowledge_base(settings, force=False, upload_file=file.filename) 
-        print(f"ran index file: {file.filename}")
         
         return {"filename": file.filename, "status": "indexed"}
     except Exception as e:
-        print(f"Error uploading file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
 
