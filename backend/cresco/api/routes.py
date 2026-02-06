@@ -1,6 +1,7 @@
 """API routes for Cresco chatbot."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, FastAPI
+from pydantic import BaseModel
 
 from cresco import __version__
 from cresco.agent.agent import get_agent, CrescoAgent
@@ -17,6 +18,35 @@ from .schemas import (
 
 router = APIRouter()
 
+# In-memory storage for farm data
+farm_data = {}
+
+class FarmData(BaseModel):
+    location: str
+    area: float
+
+app = FastAPI()
+
+@router.post("/farm-data")
+async def save_farm_data(farm: FarmData):
+    try:
+        # For simplicity, using a single key for now
+        user_id = "default_user"
+        farm_data[user_id] = {
+            "location": farm.location,
+            "area": farm.area
+        }
+        return {"message": "Farm data saved successfully", "data": farm_data[user_id]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+@router.get("/farm-data")
+async def get_farm_data():
+    user_id = "default_user"
+    if user_id in farm_data:
+        return {"data": farm_data[user_id]}
+    else:
+        raise HTTPException(status_code=404, detail="No farm data found for the user")
 
 @router.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check(settings: Settings = Depends(get_settings)) -> HealthResponse:
@@ -35,16 +65,13 @@ async def chat(
 ) -> ChatResponse:
     """Send a message to the Cresco chatbot."""
     try:
-        # Build the message, including file context if files are uploaded
+        # Build the message, including farm data context if available
         message = request.message
 
-        if request.files and len(request.files) > 0:
-            file_context = "\n\n[Uploaded Files Context]:\n"
-            for file in request.files:
-                file_name = file.get("name", "unknown")
-                file_content = file.get("content", "")
-                file_context += f"\n--- {file_name} ---\n{file_content}\n"
-            message = message + file_context
+        user_id = "default_user"
+        if user_id in farm_data:
+            farm_context = f"\n\n[Farm Data Context]:\nLocation: {farm_data[user_id]['location']}, Area: {farm_data[user_id]['area']} km²"
+            message += farm_context
 
         result = await agent.chat(message)
         return ChatResponse(
@@ -72,3 +99,6 @@ async def index_documents(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Indexing error: {str(e)}")
+
+# Include the router in the FastAPI app with the prefix `/api/v1`
+app.include_router(router, prefix="/api/v1")
