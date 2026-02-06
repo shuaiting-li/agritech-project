@@ -3,7 +3,7 @@ import Header from './layout/Header';
 import SidebarLeft from './layout/SidebarLeft';
 import SidebarRight from './layout/SidebarRight';
 import ChatArea from './layout/ChatArea';
-import { sendMessage } from './services/api';
+import { sendMessage, uploadAndIndexFile } from './services/api';
 import SatelliteMap from './satellite';
 import Weather from './weather';
 
@@ -23,10 +23,19 @@ function App() {
     const [isWeatherOpen, setIsWeatherOpen] = useState(false);
     const [farmLocation, setFarmLocation] = useState(null); // State to store farm location
 
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
+        setIsLoading(true);
         const uploadedFiles = Array.from(e.target.files);
-
-        setFiles(prev => [...prev, ...uploadedFiles]);
+        console.log("Uploading files:");
+        for (const file of uploadedFiles) {
+            try {
+                await uploadAndIndexFile(file);
+                setFiles(prev => [...prev, file]);
+                setIsLoading(false);
+            } catch (error) {
+                console.error("Failed to upload and index:", file.name);
+            }
+        };
     };
 
     const handleRemoveFile = (index) => {
@@ -63,7 +72,6 @@ function App() {
                 }
             ]);
 
-            setFiles([]);
         } catch (error) {
             console.error('Chat error:', error);
             setMessages(prev => [
@@ -112,9 +120,9 @@ function App() {
                         isLoading={isLoading}
                     />
                 </div>
-                <SidebarRight 
-                    handleOpenSatellite={handleOpenSatellite} 
-                    handleOpenWeather={handleOpenWeather} 
+                <SidebarRight
+                    handleOpenSatellite={handleOpenSatellite}
+                    handleOpenWeather={handleOpenWeather}
                 />
             </div>
 
@@ -139,8 +147,8 @@ function App() {
                         borderRadius: '8px',
                         overflow: 'hidden'
                     }}>
-                        <button 
-                            onClick={handleCloseSatellite} 
+                        <button
+                            onClick={handleCloseSatellite}
                             style={{
                                 position: 'absolute',
                                 top: '10px',
@@ -156,9 +164,9 @@ function App() {
                         >
                             X
                         </button>
-                        <SatelliteMap 
-                            farmLocation={farmLocation} 
-                            setFarmLocation={setFarmLocation} 
+                        <SatelliteMap
+                            farmLocation={farmLocation}
+                            setFarmLocation={setFarmLocation}
                         />
                     </div>
                 </div>
@@ -185,8 +193,8 @@ function App() {
                         borderRadius: '8px',
                         overflow: 'hidden'
                     }}>
-                        <button 
-                            onClick={handleCloseWeather} 
+                        <button
+                            onClick={handleCloseWeather}
                             style={{
                                 position: 'absolute',
                                 top: '10px',

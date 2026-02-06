@@ -1,6 +1,7 @@
 """Document indexing for the vector store."""
 
 import asyncio
+from fileinput import filename
 import time
 
 from langchain_chroma import Chroma
@@ -41,12 +42,13 @@ def is_indexed(settings: Settings) -> bool:
         return False
 
 
-async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
+async def index_knowledge_base(settings: Settings, force: bool = False, upload_file:str = None) -> int:
     """Index all knowledge base documents into ChromaDB.
 
     Args:
         settings: Application settings.
         force: If True, re-index even if index exists.
+        upload_file: If provided, only index this specific file.
 
     Returns:
         Number of document chunks indexed.
@@ -54,7 +56,7 @@ async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
     chroma_path = settings.chroma_path
 
     # Check if already indexed
-    if not force and is_indexed(settings):
+    if not force and is_indexed(settings) and not upload_file:
         vectorstore = Chroma(
             persist_directory=str(chroma_path),
             embedding_function=get_embeddings(),
@@ -73,7 +75,13 @@ async def index_knowledge_base(settings: Settings, force: bool = False) -> int:
 
     # Load and split documents
     documents = load_knowledge_base(settings)
+
+    if upload_file:
+        documents = [doc for doc in documents if doc.metadata.get("filename") == upload_file]
+
+
     chunks = split_documents(documents)
+
 
     print(f"[*] Loaded {len(documents)} documents, split into {len(chunks)} chunks")
     print(f"[*] Indexing in batches of {BATCH_SIZE} with {BATCH_DELAY}s delay...")
