@@ -125,7 +125,8 @@ class CrescoAgent:
 
         # Extract sources from tool artifacts if available
         sources = []
-        for msg in result["messages"]:
+        for i in range(len(result["messages"]) - 1, len(result["messages"])-3, -1):   # Check the last 2 messages for artifacts (tool message is usually the second last message)
+            msg = result["messages"][i]
             if hasattr(msg, "artifact") and msg.artifact:
                 for doc in msg.artifact:
                     # Support both Document objects and dicts  -> short term fix, might be a deeper issue to resolve? probably just from json conversion during upload
@@ -136,7 +137,8 @@ class CrescoAgent:
                         source = metadata.get("filename", "Unknown")
                         if source not in sources:
                             sources.append(source)
-
+                break  # Only consider the first message with artifacts for sources
+                
         return {
             "answer": answer,
             "sources": sources,
