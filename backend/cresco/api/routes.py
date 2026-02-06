@@ -25,6 +25,12 @@ class FarmData(BaseModel):
     location: str
     area: float
 
+# Add a new endpoint to receive weather data
+class WeatherData(BaseModel):
+    location: str
+    currentWeather: dict
+    forecast: dict
+
 app = FastAPI()
 
 @router.post("/farm-data")
@@ -48,6 +54,21 @@ async def get_farm_data():
     else:
         raise HTTPException(status_code=404, detail="No farm data found for the user")
 
+# Update the /weather-data endpoint to parse and store both current weather and forecast data
+@router.post("/weather-data")
+async def save_weather_data(weather: WeatherData):
+    try:
+        # For simplicity, using a single key for now
+        user_id = "default_user"
+        farm_data[user_id]["weather"] = {
+            "location": weather.location,
+            "currentWeather": weather.currentWeather,
+            "forecast": weather.forecast  # Include forecast data
+        }
+        return {"message": "Weather data saved successfully", "data": farm_data[user_id]["weather"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
 @router.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check(settings: Settings = Depends(get_settings)) -> HealthResponse:
     """Check API health and knowledge base status."""
@@ -65,13 +86,17 @@ async def chat(
 ) -> ChatResponse:
     """Send a message to the Cresco chatbot."""
     try:
-        # Build the message, including farm data context if available
+        # Build the message, including farm and weather data context if available
         message = request.message
 
         user_id = "default_user"
         if user_id in farm_data:
             farm_context = f"\n\n[Farm Data Context]:\nLocation: {farm_data[user_id]['location']}, Area: {farm_data[user_id]['area']} km²"
             message += farm_context
+
+            if "weather" in farm_data[user_id]:
+                weather_context = f"\n\n[Weather Data Context]:\nLocation: {farm_data[user_id]['weather']['location']}, Current Weather: {farm_data[user_id]['weather']['currentWeather']['weather'][0]['description']}, Temperature: {farm_data[user_id]['weather']['currentWeather']['main']['temp']}°C"
+                message += weather_context
 
         result = await agent.chat(message)
         return ChatResponse(
