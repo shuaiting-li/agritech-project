@@ -73,6 +73,16 @@
     line-height: 1.5;
 }
 
+.markdown-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 12px;
+}
+.markdown-table th, .markdown-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
 /* --- Planner Tasks --- */
 .tasksContainer {
     margin-top: 16px;
