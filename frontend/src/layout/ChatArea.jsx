@@ -1,6 +1,12 @@
 import { useRef, useEffect, useState } from 'react';
 import { ArrowUp, Sprout, Bot, ClipboardList, BookOpen } from 'lucide-react';
 import styles from './ChatArea.module.css';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 
 export default function ChatArea({ files, messages, onSendMessage, isLoading }) {
     const [input, setInput] = useState("");
@@ -66,7 +72,13 @@ export default function ChatArea({ files, messages, onSendMessage, isLoading }) 
                                     {!isUser && <div className={styles.botAvatar}><Bot size={18} /></div>}
                                     <div className={`${styles.bubble} ${isUser ? styles.userBubble : styles.botBubble}`}>
                                         <div className={styles.messageContent}>
-                                            {msg.content}
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm, remarkMath]}
+                                                rehypePlugins={[rehypeKatex]}
+                                                components={{table: ({node, ...props}) => <table className={styles['markdown-table']} {...props} /> }}
+                                                >
+                                                {msg.content}
+                                            </ReactMarkdown>
                                         </div>
 
                                         {/* Render Tasks if present */}
