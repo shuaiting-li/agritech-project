@@ -4,6 +4,9 @@ venv/
 env/
 ENV/
 
+#frontend node modules
+frontend/node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -41,4 +44,4 @@ nohup.out
 *.db
 *.sqlite
 *.sqlite3
-data/chroma_db/
+backend/data/chroma_db/
