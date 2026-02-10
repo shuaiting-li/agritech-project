@@ -23,6 +23,12 @@ uv sync --extra dev
 # Run tests
 uv run pytest
 
+# Run tests with coverage report
+uv run pytest --cov=cresco --cov-report=term-missing
+
+# Run specific test file
+uv run pytest tests/test_api.py -v
+
 # Lint code
 uv run ruff check .
 uv run ruff format .
