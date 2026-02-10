@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './SidebarRight.module.css';
-import { STUDIO_ITEMS } from '../data/mockData';
+import { STUDIO_ITEMS } from '../tools/toolMenu';
 import Weather from '../weather';
 
 export default function SidebarRight({ handleOpenSatellite, handleOpenWeather }) {
