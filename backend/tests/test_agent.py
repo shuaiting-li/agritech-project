@@ -124,9 +124,7 @@ class TestCrescoAgentChat:
                     mock_final_msg.artifact = None
 
                     mock_agent = AsyncMock()
-                    mock_agent.ainvoke.return_value = {
-                        "messages": [mock_tool_msg, mock_final_msg]
-                    }
+                    mock_agent.ainvoke.return_value = {"messages": [mock_tool_msg, mock_final_msg]}
                     mock_create.return_value = mock_agent
 
                     agent = CrescoAgent(mock_settings)

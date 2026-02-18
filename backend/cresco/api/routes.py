@@ -130,9 +130,7 @@ async def chat(
 
 
 @router.post("/upload", response_model=FileUploadResponse, tags=["Files"])
-async def upload_file(
-    file: UploadFile = File(...), settings: Settings = Depends(get_settings)
-):
+async def upload_file(file: UploadFile = File(...), settings: Settings = Depends(get_settings)):
     try:
         upload_dir = settings.knowledge_base
         upload_dir.mkdir(parents=True, exist_ok=True)

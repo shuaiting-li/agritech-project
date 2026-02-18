@@ -97,9 +97,7 @@ class CrescoAgent:
         ai_message = result["messages"][-1]
 
         # Handle different content formats (string or list of content blocks)
-        content = (
-            ai_message.content if hasattr(ai_message, "content") else str(ai_message)
-        )
+        content = ai_message.content if hasattr(ai_message, "content") else str(ai_message)
         if isinstance(content, list):
             # Extract text from content blocks like [{'type': 'text', 'text': '...'}]
             answer = "".join(

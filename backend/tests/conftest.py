@@ -137,9 +137,7 @@ async def async_client():
     app.dependency_overrides[get_agent] = lambda: mock_agent
     app.dependency_overrides[get_settings] = lambda: mock_settings
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         with patch("cresco.api.routes.is_indexed", return_value=True):
             yield ac
 

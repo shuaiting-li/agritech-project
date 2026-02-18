@@ -78,9 +78,7 @@ async def index_knowledge_base(
     documents = load_knowledge_base(settings)
 
     if upload_file:
-        documents = [
-            doc for doc in documents if doc.metadata.get("filename") == upload_file
-        ]
+        documents = [doc for doc in documents if doc.metadata.get("filename") == upload_file]
 
     chunks = split_documents(documents)
 

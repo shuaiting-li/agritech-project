@@ -132,9 +132,7 @@ class TestIndexKnowledgeBase:
                             mock_vectorstore._collection.count.return_value = len(docs)
                             mock_chroma.return_value = mock_vectorstore
 
-                            await index_knowledge_base(
-                                mock_settings, force=True
-                            )
+                            await index_knowledge_base(mock_settings, force=True)
 
                             # Should have called add_documents at least twice
                             assert mock_vectorstore.add_documents.call_count >= 2

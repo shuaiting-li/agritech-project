@@ -45,9 +45,7 @@ class TestChatEndpoint:
 
     def test_chat_endpoint_accepts_valid_message(self, client):
         """Test chat endpoint accepts valid messages."""
-        response = client.post(
-            "/api/v1/chat", json={"message": "What diseases affect wheat?"}
-        )
+        response = client.post("/api/v1/chat", json={"message": "What diseases affect wheat?"})
         assert response.status_code == 200
         data = response.json()
         assert "answer" in data
@@ -86,9 +84,7 @@ class TestChatEndpoint:
 
     def test_chat_response_has_correct_structure(self, client):
         """Test chat response has all required fields."""
-        response = client.post(
-            "/api/v1/chat", json={"message": "How do I manage septoria?"}
-        )
+        response = client.post("/api/v1/chat", json={"message": "How do I manage septoria?"})
         assert response.status_code == 200
         data = response.json()
 
@@ -108,9 +104,7 @@ class TestIndexEndpoint:
 
     def test_index_endpoint_default_no_force(self, client):
         """Test index endpoint accepts request without force flag."""
-        with patch(
-            "cresco.api.routes.index_knowledge_base", new_callable=AsyncMock
-        ) as mock_index:
+        with patch("cresco.api.routes.index_knowledge_base", new_callable=AsyncMock) as mock_index:
             mock_index.return_value = 50
             response = client.post("/api/v1/index", json={})
             assert response.status_code == 200
@@ -120,9 +114,7 @@ class TestIndexEndpoint:
 
     def test_index_endpoint_with_force_reindex(self, client):
         """Test index endpoint with force_reindex flag."""
-        with patch(
-            "cresco.api.routes.index_knowledge_base", new_callable=AsyncMock
-        ) as mock_index:
+        with patch("cresco.api.routes.index_knowledge_base", new_callable=AsyncMock) as mock_index:
             mock_index.return_value = 100
             response = client.post("/api/v1/index", json={"force_reindex": True})
             assert response.status_code == 200
@@ -133,9 +125,7 @@ class TestIndexEndpoint:
 
     def test_index_endpoint_returns_document_count(self, client):
         """Test index endpoint returns correct document count."""
-        with patch(
-            "cresco.api.routes.index_knowledge_base", new_callable=AsyncMock
-        ) as mock_index:
+        with patch("cresco.api.routes.index_knowledge_base", new_callable=AsyncMock) as mock_index:
             mock_index.return_value = 75
             response = client.post("/api/v1/index", json={})
             data = response.json()
@@ -144,9 +134,7 @@ class TestIndexEndpoint:
 
     def test_index_endpoint_handles_errors(self, client):
         """Test index endpoint handles indexing errors gracefully."""
-        with patch(
-            "cresco.api.routes.index_knowledge_base", new_callable=AsyncMock
-        ) as mock_index:
+        with patch("cresco.api.routes.index_knowledge_base", new_callable=AsyncMock) as mock_index:
             mock_index.side_effect = Exception("Database error")
             response = client.post("/api/v1/index", json={})
             assert response.status_code == 500
@@ -170,9 +158,7 @@ class TestCORS:
 
     def test_cors_headers_present(self, client):
         """Test CORS headers are present in response."""
-        response = client.get(
-            "/api/v1/health", headers={"Origin": "http://localhost:3000"}
-        )
+        response = client.get("/api/v1/health", headers={"Origin": "http://localhost:3000"})
         # When CORS is configured with allow_origins=["*"]
         # the header should be present
         assert response.status_code == 200

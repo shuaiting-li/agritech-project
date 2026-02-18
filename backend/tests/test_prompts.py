@@ -1,6 +1,5 @@
 """Tests for agent prompts."""
 
-
 from cresco.agent.prompts import SYSTEM_PROMPT
 
 
