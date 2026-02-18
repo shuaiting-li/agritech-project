@@ -132,7 +132,7 @@ class TestIndexKnowledgeBase:
                             mock_vectorstore._collection.count.return_value = len(docs)
                             mock_chroma.return_value = mock_vectorstore
 
-                            count = await index_knowledge_base(
+                            await index_knowledge_base(
                                 mock_settings, force=True
                             )
 

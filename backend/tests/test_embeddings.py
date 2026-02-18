@@ -24,7 +24,7 @@ class TestGetEmbeddings:
                 )
                 mock_settings.return_value.azure_openai_api_version = "2024-08-01"
 
-                embeddings = get_embeddings()
+                get_embeddings()
 
                 assert mock_embeddings.called
 

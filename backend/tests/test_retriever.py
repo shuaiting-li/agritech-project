@@ -20,7 +20,7 @@ class TestGetVectorStore:
                 with patch("cresco.rag.retriever.get_settings") as mock_settings:
                     mock_settings.return_value.chroma_path = "/tmp/chroma"
 
-                    store = get_vector_store()
+                    get_vector_store()
 
                     assert mock_chroma.called
 

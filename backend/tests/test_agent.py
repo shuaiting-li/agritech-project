@@ -52,7 +52,7 @@ class TestCrescoAgentInit:
                     mock_create.return_value = MagicMock()
                     mock_azure.return_value = MagicMock()
 
-                    agent = CrescoAgent(mock_settings)
+                    CrescoAgent(mock_settings)
 
                     assert mock_azure.called
 
@@ -67,7 +67,7 @@ class TestCrescoAgentInit:
                     mock_vs.return_value = MagicMock()
                     mock_create.return_value = MagicMock()
 
-                    agent = CrescoAgent(mock_settings)
+                    CrescoAgent(mock_settings)
 
                     mock_init.assert_called_once()
                     call_kwargs = mock_init.call_args
@@ -260,7 +260,7 @@ class TestGetAgent:
     def test_get_agent_returns_agent(self):
         """Test get_agent returns a CrescoAgent."""
         with patch("cresco.agent.agent.CrescoAgent") as mock_agent_class:
-            with patch("cresco.agent.agent.get_settings") as mock_settings:
+            with patch("cresco.agent.agent.get_settings"):
                 mock_agent_class.return_value = MagicMock()
 
                 # Reset the singleton
@@ -268,6 +268,6 @@ class TestGetAgent:
 
                 agent_module._agent = None
 
-                agent = get_agent()
+                get_agent()
 
                 assert mock_agent_class.called
