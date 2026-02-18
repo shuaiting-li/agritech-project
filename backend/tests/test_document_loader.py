@@ -1,15 +1,15 @@
 """Tests for RAG document loader."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 from langchain_core.documents import Document
 
 from cresco.rag.document_loader import (
+    _categorize_document,
     load_knowledge_base,
     split_documents,
-    _categorize_document,
 )
 
 

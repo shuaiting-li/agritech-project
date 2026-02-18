@@ -1,24 +1,22 @@
 """API routes for Cresco chatbot."""
 
-from fastapi import APIRouter, Depends, HTTPException, FastAPI
+import shutil
+
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from cresco import __version__
-from cresco.agent.agent import get_agent, CrescoAgent
+from cresco.agent.agent import CrescoAgent, get_agent
 from cresco.config import Settings, get_settings
 from cresco.rag.indexer import index_knowledge_base, is_indexed
-import shutil
-from pathlib import Path
-from fastapi import UploadFile, File
-from cresco.rag.indexer import index_knowledge_base
 
 from .schemas import (
     ChatRequest,
     ChatResponse,
+    FileUploadResponse,
     HealthResponse,
     IndexRequest,
     IndexResponse,
-    FileUploadResponse,
 )
 
 router = APIRouter()

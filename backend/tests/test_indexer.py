@@ -1,13 +1,12 @@
 """Tests for RAG indexer."""
 
-import pytest
-import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import MagicMock, patch
 
-from cresco.config import Settings
-from cresco.rag.indexer import is_indexed, index_knowledge_base, BATCH_SIZE, BATCH_DELAY
+import pytest
+
+from cresco.rag.indexer import BATCH_DELAY, BATCH_SIZE, index_knowledge_base, is_indexed
 
 
 class TestIsIndexed:

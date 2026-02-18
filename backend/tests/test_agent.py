@@ -1,8 +1,9 @@
 """Tests for CrescoAgent."""
 
-import pytest
 import json
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from cresco.agent.agent import CrescoAgent, get_agent
 

@@ -3,11 +3,12 @@
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain.tools import tool
-from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.memory import InMemorySaver
 
 from cresco.config import Settings, get_settings
 from cresco.rag.retriever import get_vector_store
+
 from .prompts import SYSTEM_PROMPT
 
 
@@ -120,7 +121,7 @@ class CrescoAgent:
                 tasks = json.loads(task_json)
                 # Remove the task section from the answer
                 answer = answer[: answer.index("---TASKS---")].strip()
-            except (ValueError, json.JSONDecodeError) as e:
+            except (ValueError, json.JSONDecodeError):
                 # If parsing fails, just leave tasks empty
                 pass
 
