@@ -62,3 +62,8 @@ class FileUploadResponse(BaseModel):
     """Response model for file upload endpoint."""
     filename: str = Field(..., description="Name of the uploaded file")
     status: str = Field(..., description="Upload status")
+
+class DroneImageUploadResponse(BaseModel):
+    """Response model for drone image upload endpoint."""
+    filename: str = Field(..., description="Name of the uploaded file")
+    status: str = Field(..., description="Upload status")

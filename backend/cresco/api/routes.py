@@ -7,6 +7,7 @@ from cresco import __version__
 from cresco.agent.agent import get_agent, CrescoAgent
 from cresco.config import Settings, get_settings
 from cresco.rag.indexer import index_knowledge_base, is_indexed
+from scripts.drone_image import process_drone_images
 import shutil
 from pathlib import Path
 from fastapi import UploadFile, File
@@ -19,6 +20,7 @@ from .schemas import (
     IndexRequest,
     IndexResponse,
     FileUploadResponse,
+    DroneImageUploadResponse,
 )
 
 router = APIRouter()
@@ -142,8 +144,48 @@ async def upload_file(
         # Trigger reindexing
 
         await index_knowledge_base(settings, force=False, upload_file=file.filename)
+        return FileUploadResponse(
+            filename=file.filename,
+            status="indexed",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
+    
+    
 
-        return {"filename": file.filename, "status": "indexed"}
+@router.post("/droneimage", response_model=DroneImageUploadResponse, tags=["Files"])
+async def upload_file(
+    files: list[UploadFile] = File(...), settings: Settings = Depends(get_settings)
+):
+    # try:  -- in case we want to save the files to disk as well
+    #     upload_dir = settings.knowledge_base
+    #     upload_dir.mkdir(parents=True, exist_ok=True)
+
+    #     for file in files:
+    #         file_path = upload_dir / file.filename
+    #         with file_path.open("wb") as buffer:
+    #             shutil.copyfileobj(file.file, buffer)
+
+    #     # Trigger reindexing
+
+    #     await index_knowledge_base(settings, force=False, upload_file=file.filename)
+
+    #     return {"filename": file.filename, "status": "indexed"}
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
+
+    try:
+        if len(files) != 2:
+            raise HTTPException(status_code=400, detail="Exactly 2 files (NIR and RGB) are required")
+
+        img = await files[0].read()
+        nir = await files[1].read()
+        result = await process_drone_images(nir, img)
+
+        return DroneImageUploadResponse(
+            filename=files[0].filename + " + " + files[1].filename, 
+            status="indexed",
+        )    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload error: {str(e)}")
 
