@@ -16,8 +16,16 @@ def mock_agent_deps(mock_settings):
         patch("cresco.agent.agent.get_vector_store"),
         patch("cresco.agent.agent.create_agent"),
         patch("langchain_openai.AzureChatOpenAI"),  # Patch at source
+        patch("cresco.agent.agent.TavilySearch"),
     ]
     return patches
+
+
+@pytest.fixture(autouse=True)
+def _mock_tavily():
+    """Automatically mock TavilySearch for all tests (no API key in CI)."""
+    with patch("cresco.agent.agent.TavilySearch"):
+        yield
 
 
 class TestCrescoAgentInit:
