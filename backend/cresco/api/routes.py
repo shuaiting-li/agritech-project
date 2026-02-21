@@ -2,7 +2,8 @@
 
 import shutil
 
-from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, UploadFile
+import httpx
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from cresco import __version__
@@ -76,6 +77,47 @@ async def save_weather_data(weather: WeatherData, current_user: dict = Depends(g
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+@router.get("/geocode/search", tags=["Geocoding"])
+async def geocode_search(
+    q: str = Query(..., description="Search query (city, address, postcode)"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Proxy forward geocoding requests to Nominatim."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={"format": "json", "q": q},
+                headers={"User-Agent": "Cresco/1.0"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Geocoding request failed: {e}")
+
+
+@router.get("/geocode/reverse", tags=["Geocoding"])
+async def geocode_reverse(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Proxy reverse geocoding requests to Nominatim."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://nominatim.openstreetmap.org/reverse",
+                params={"format": "json", "lat": lat, "lon": lon},
+                headers={"User-Agent": "Cresco/1.0"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Reverse geocoding request failed: {e}")
 
 
 @router.get("/health", response_model=HealthResponse, tags=["System"])

@@ -211,6 +211,53 @@ export async function indexKnowledgeBase(forceReindex = false) {
  */
 
 /**
+ * Forward geocode a search query (city, address, postcode) via the backend proxy.
+ * @param {string} query
+ * @returns {Promise<Array<{ lat: string, lon: string, display_name: string }>>}
+ */
+export async function geocodeSearch(query) {
+    const params = new URLSearchParams({ q: query });
+    const response = await fetch(`${API_BASE_URL}/geocode/search?${params}`, {
+        headers: authHeaders(),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        logout();
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (!response.ok) {
+        throw new Error(`Geocode search failed (${response.status})`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Reverse geocode coordinates via the backend proxy.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {Promise<{ display_name: string }>}
+ */
+export async function geocodeReverse(lat, lon) {
+    const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
+    const response = await fetch(`${API_BASE_URL}/geocode/reverse?${params}`, {
+        headers: authHeaders(),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        logout();
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (!response.ok) {
+        throw new Error(`Reverse geocode failed (${response.status})`);
+    }
+
+    return await response.json();
+}
+
+/**
  * Save farm location and area data to the backend.
  * @param {{ location: string, area: string }} farmData
  * @returns {Promise<{ message: string, data: object }>}

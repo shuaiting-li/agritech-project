@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import area from '@turf/area';
 import { polygon } from '@turf/helpers';
-import { saveFarmData } from './services/api';
+import { saveFarmData, geocodeSearch, geocodeReverse } from './services/api';
 
 
 //reimported images cos it was breaking 
@@ -226,14 +226,7 @@ const SatelliteMap = ({ farmLocation, setFarmLocation }) => {
     if (!searchQuery) return;
 
     try {
-      const encodedQuery = encodeURIComponent(searchQuery);
-
-      //sends request to OpenStreetMap (Nominatim) 
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedQuery}`
-      );
-
-      const data = await response.json();
+      const data = await geocodeSearch(searchQuery);
 
       if (data && data.length > 0) {  //actually returns a list of results, so choose firt results (most accurate) - can have a dropdown menu asw?
         const firstResult = data[0];
@@ -259,16 +252,14 @@ const SatelliteMap = ({ farmLocation, setFarmLocation }) => {
         const centerLat = positions.reduce((sum, pos) => sum + pos[0], 0) / positions.length;
         const centerLng = positions.reduce((sum, pos) => sum + pos[1], 0) / positions.length;
 
-        // Fetch the location name using reverse geocoding
-        const reverseGeocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${centerLat}&lon=${centerLng}`;
-        const reverseGeocodeResponse = await fetch(reverseGeocodeUrl);
-
-        if (!reverseGeocodeResponse.ok) {
-          throw new Error("Failed to fetch location name from reverse geocoding API");
+        // Fetch the location name using reverse geocoding via backend proxy
+        let locationName = `${centerLat.toFixed(4)}, ${centerLng.toFixed(4)}`;
+        try {
+          const reverseGeocodeData = await geocodeReverse(centerLat, centerLng);
+          locationName = reverseGeocodeData.display_name || locationName;
+        } catch (geoErr) {
+          console.warn("Reverse geocoding failed, using coordinates:", geoErr);
         }
-
-        const reverseGeocodeData = await reverseGeocodeResponse.json();
-        const locationName = reverseGeocodeData.display_name || "Unknown Location";
 
         const farmData = {
           location: locationName,
