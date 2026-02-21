@@ -2,11 +2,13 @@
 
 import shutil
 
-from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, UploadFile
+import httpx
+from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, Query, UploadFile
 from pydantic import BaseModel
 
 from cresco import __version__
 from cresco.agent.agent import CrescoAgent, get_agent
+from cresco.auth.dependencies import get_current_user
 from cresco.config import Settings, get_settings
 from cresco.rag.indexer import index_knowledge_base, is_indexed
 
@@ -41,10 +43,9 @@ app = FastAPI()
 
 
 @router.post("/farm-data")
-async def save_farm_data(farm: FarmData):
+async def save_farm_data(farm: FarmData, current_user: dict = Depends(get_current_user)):
     try:
-        # For simplicity, using a single key for now
-        user_id = "default_user"
+        user_id = current_user["user_id"]
         farm_data[user_id] = {"location": farm.location, "area": farm.area}
         return {"message": "Farm data saved successfully", "data": farm_data[user_id]}
     except Exception as e:
@@ -52,8 +53,8 @@ async def save_farm_data(farm: FarmData):
 
 
 @router.get("/farm-data")
-async def get_farm_data():
-    user_id = "default_user"
+async def get_farm_data(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["user_id"]
     if user_id in farm_data:
         return {"data": farm_data[user_id]}
     else:
@@ -62,10 +63,9 @@ async def get_farm_data():
 
 # Update the /weather-data endpoint to parse and store both current weather and forecast data
 @router.post("/weather-data")
-async def save_weather_data(weather: WeatherData):
+async def save_weather_data(weather: WeatherData, current_user: dict = Depends(get_current_user)):
     try:
-        # For simplicity, using a single key for now
-        user_id = "default_user"
+        user_id = current_user["user_id"]
         farm_data[user_id]["weather"] = {
             "location": weather.location,
             "current_weather": weather.current_weather,
@@ -77,6 +77,47 @@ async def save_weather_data(weather: WeatherData):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+@router.get("/geocode/search", tags=["Geocoding"])
+async def geocode_search(
+    q: str = Query(..., description="Search query (city, address, postcode)"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Proxy forward geocoding requests to Nominatim."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={"format": "json", "q": q},
+                headers={"User-Agent": "Cresco/1.0"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Geocoding request failed: {e}")
+
+
+@router.get("/geocode/reverse", tags=["Geocoding"])
+async def geocode_reverse(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude"),
+    current_user: dict = Depends(get_current_user),
+):
+    """Proxy reverse geocoding requests to Nominatim."""
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://nominatim.openstreetmap.org/reverse",
+                params={"format": "json", "lat": lat, "lon": lon},
+                headers={"User-Agent": "Cresco/1.0"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"Reverse geocoding request failed: {e}")
 
 
 @router.get("/health", response_model=HealthResponse, tags=["System"])
@@ -92,6 +133,7 @@ async def health_check(settings: Settings = Depends(get_settings)) -> HealthResp
 @router.post("/chat", response_model=ChatResponse, tags=["Chat"])
 async def chat(
     request: ChatRequest,
+    current_user: dict = Depends(get_current_user),
     agent: CrescoAgent = Depends(get_agent),
 ) -> ChatResponse:
     """Send a message to the Cresco chatbot."""
@@ -99,7 +141,7 @@ async def chat(
         # Build the message, including farm and weather data context if available
         message = request.message
 
-        user_id = "default_user"
+        user_id = current_user["user_id"]
         if user_id in farm_data:
             farm_context = f"\n\n[Farm Data Context]:\n\
             Location: {farm_data[user_id]['location']}, Area: {farm_data[user_id]['area']} km²"
@@ -118,7 +160,7 @@ async def chat(
                 file_content = file.get("content", "")
                 file_context += f"\n--- {file_name} ---\n{file_content}\n"
             message = message + file_context
-        result = await agent.chat(message)
+        result = await agent.chat(message, thread_id=user_id)
         return ChatResponse(
             answer=result["answer"],
             sources=result.get("sources", []),
@@ -130,7 +172,11 @@ async def chat(
 
 
 @router.post("/upload", response_model=FileUploadResponse, tags=["Files"])
-async def upload_file(file: UploadFile = File(...), settings: Settings = Depends(get_settings)):
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
+):
     try:
         upload_dir = settings.knowledge_base
         upload_dir.mkdir(parents=True, exist_ok=True)
@@ -151,6 +197,7 @@ async def upload_file(file: UploadFile = File(...), settings: Settings = Depends
 @router.post("/index", response_model=IndexResponse, tags=["System"])
 async def index_documents(
     request: IndexRequest,
+    current_user: dict = Depends(get_current_user),
     settings: Settings = Depends(get_settings),
 ) -> IndexResponse:
     """Index or re-index the knowledge base documents."""
