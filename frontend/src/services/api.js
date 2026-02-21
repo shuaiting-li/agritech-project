@@ -210,6 +210,54 @@ export async function indexKnowledgeBase(forceReindex = false) {
  * @returns {Promise<{filename: string, status: string}>}
  */
 
+/**
+ * Save farm location and area data to the backend.
+ * @param {{ location: string, area: string }} farmData
+ * @returns {Promise<{ message: string, data: object }>}
+ */
+export async function saveFarmData(farmData) {
+    const response = await fetch(`${API_BASE_URL}/farm-data`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(farmData),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        logout();
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (!response.ok) {
+        throw new Error(`Failed to save farm data (${response.status})`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * Save weather and forecast data to the backend.
+ * @param {{ location: string, current_weather: object, forecast: object }} weatherData
+ * @returns {Promise<{ message: string, data: object }>}
+ */
+export async function saveWeatherData(weatherData) {
+    const response = await fetch(`${API_BASE_URL}/weather-data`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(weatherData),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+        logout();
+        throw new Error('Session expired. Please log in again.');
+    }
+
+    if (!response.ok) {
+        throw new Error(`Failed to save weather data (${response.status})`);
+    }
+
+    return await response.json();
+}
+
 export const uploadAndIndexFile = async (file) => {
     const formData = new FormData();
     formData.append('file', file);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Weather.css"; // Importing Weather.css for styling
+import { saveWeatherData } from './services/api';
 
 const Weather = ({ lat, lon }) => {
     const [weather, setWeather] = useState(null);
@@ -43,21 +44,11 @@ const Weather = ({ lat, lon }) => {
                 setForecast(forecastData);
 
                 // Send weather and forecast data to the backend
-                const backendResponse = await fetch("http://127.0.0.1:8000/api/v1/weather-data", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        location: weatherData.name,
-                        current_weather: weatherData,
-                        forecast: forecastData
-                    })
+                await saveWeatherData({
+                    location: weatherData.name,
+                    current_weather: weatherData,
+                    forecast: forecastData
                 });
-
-                if (!backendResponse.ok) {
-                    throw new Error("Failed to send weather data to the backend");
-                }
 
                 console.log("Weather data sent to backend successfully", weatherData, forecastData);
             } catch (err) {
